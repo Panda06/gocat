@@ -7,6 +7,16 @@ import (
 	"os"
 )
 
+const (
+	space         = 32  // первый печатный ASCII
+	tilde         = 126 // последний печатный ASCII (~)
+	del           = 127 // DEL
+	metaCtrlStart = 128 // M-^@ начало extended control
+	metaStart     = 160 // начало extended printable
+	metaDel       = 255 // M-^?
+	ctrlOffset    = 64  // смещение для ^-нотации (^A = 1+64 = 'A')
+)
+
 type state struct {
 	lineNum      int
 	lastSym      byte
@@ -70,7 +80,7 @@ func printLine(line []byte, opt Options) {
 		}
 		if c == '\t' && opt.ShowTabs {
 			fmt.Print("^I")
-		} else if opt.ShowNonPrinting && (c < 32 || c > 126) && c != '\n' && c != '\t' {
+		} else if opt.ShowNonPrinting && (c < space || c > tilde) && c != '\n' && c != '\t' {
 			printNonVisible(c)
 		} else {
 			fmt.Printf("%c", c)
@@ -79,15 +89,15 @@ func printLine(line []byte, opt Options) {
 }
 
 func printNonVisible(c byte) {
-	if c == 127 {
+	if c == del {
 		fmt.Print("^?")
-	} else if c < 32 {
-		fmt.Printf("^%c", c+64)
-	} else if c > 127 && c < 160 {
-		fmt.Printf("M-^%c", c-64)
-	} else if c == 255 {
+	} else if c < space {
+		fmt.Printf("^%c", c+ctrlOffset)
+	} else if c > del && c < metaStart {
+		fmt.Printf("M-^%c", c-ctrlOffset)
+	} else if c == metaDel {
 		fmt.Print("M-^?")
-	} else if c >= 160 {
-		fmt.Printf("M-%c", c-128)
+	} else if c >= metaStart {
+		fmt.Printf("M-%c", c-metaCtrlStart)
 	}
 }

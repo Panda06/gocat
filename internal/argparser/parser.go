@@ -1,7 +1,7 @@
 package argparser
 
 import (
-	"errors"
+	"fmt"
 	"gocat/internal/cat"
 	"strings"
 )
@@ -51,7 +51,7 @@ func parseShortArgs(arg string, opt *cat.Options) error {
 		case 'v':
 			opt.ShowNonPrinting = true
 		default:
-			return errors.New("Unknown flag")
+			return fmt.Errorf("cat: invalid option -- '%c'", ch)
 		}
 	}
 	return nil
@@ -66,7 +66,7 @@ func parseLongArgs(arg string, opt *cat.Options) error {
 	case "--squeeze-blank":
 		opt.SqueezeBlank = true
 	default:
-		return errors.New("Unknown flag")
+		return fmt.Errorf("cat: unrecognized option '%s'", arg)
 	}
 	return nil
 }
