@@ -23,6 +23,15 @@ type state struct {
 	prevWasEmpty bool
 }
 
+type Options struct {
+	ShowEnds        bool
+	NumberNonBlank  bool
+	Number          bool
+	SqueezeBlank    bool
+	ShowTabs        bool
+	ShowNonPrinting bool
+}
+
 func Run(opt Options, files []string) {
 	s := state{lineNum: 1, lastSym: '\n'}
 
@@ -32,18 +41,18 @@ func Run(opt Options, files []string) {
 			fmt.Fprintf(os.Stderr, "%v", err)
 			continue
 		}
-		processFile(file, opt, &s)
+		s.processFile(file, opt)
 		file.Close()
 	}
 }
 
-func processFile(file *os.File, opt Options, s *state) {
+func (s *state) processFile(file *os.File, opt Options) {
 	reader := bufio.NewReader(file)
 
 	for {
 		line, err := reader.ReadBytes('\n')
 		if len(line) > 0 {
-			processLine(line, opt, s)
+			s.processLine(line, opt)
 		}
 		if err == io.EOF {
 			break
@@ -55,7 +64,7 @@ func processFile(file *os.File, opt Options, s *state) {
 	}
 }
 
-func processLine(line []byte, opt Options, s *state) {
+func (s *state) processLine(line []byte, opt Options) {
 	currentEmpty := len(line) == 0 || (len(line) == 1 && line[0] == '\n')
 
 	if opt.SqueezeBlank && s.prevWasEmpty && currentEmpty {
